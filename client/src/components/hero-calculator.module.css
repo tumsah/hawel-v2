@@ -2,9 +2,9 @@
   --ink:#EAF8F0;
   --muted:#CFE7DA;
 
-  --emerald:#22c55e;         /* primary accent */
+  --emerald:#22c55e;
   --emerald-600:#16a34a;
-  --tint: rgba(34,197,94,.10); /* soft hover */
+  --tint: rgba(34,197,94,.10);
 
   --panelDark: rgba(255,255,255,.12);
   --panelBorderDark: rgba(255,255,255,.28);
@@ -83,11 +83,12 @@
 .input:focus{ box-shadow:0 0 0 3px rgba(34,197,94,.22); border-color:var(--emerald); }
 .inputReadOnly{ opacity:.9; }
 
-/* Currency pill (right) */
+/* Currency picker */
+.ccyWrap{ position:absolute; right:8px; top:8px; }
 .ccyPill{
-  position:absolute; right:8px; top:8px; height:48px; min-width:124px;
-  border-radius:999px; display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:0 14px; border:1px solid;
-  font-weight:800;
+  height:48px; min-width:124px;
+  display:inline-flex; align-items:center; justify-content:center; gap:10px;
+  padding:0 14px; border:1px solid; border-radius:999px; font-weight:800; cursor:pointer;
 }
 .flagImg{ width:18px; height:14px; border-radius:2px; object-fit:cover; box-shadow:0 0 0 1px rgba(0,0,0,.08); }
 .ccyCode{letter-spacing:.6px;}
@@ -95,26 +96,34 @@
 .dark .ccyPill{ background:rgba(0,0,0,.28); border-color:rgba(255,255,255,.32); color:#fff; }
 .light .ccyPill{ background:#eef6f2; border-color:#d8ebe3; color:#1b231f; }
 
+/* Dropdown menu */
+.ccyMenu{
+  position:absolute; right:0; top:calc(100% + 6px); min-width:260px; z-index:20;
+  border-radius:12px; overflow:hidden; border:1px solid;
+  box-shadow:0 12px 28px rgba(0,0,0,.22);
+}
+.dark .ccyMenu{ background:#0f2018; border-color:rgba(255,255,255,.22); color:#fff; }
+.light .ccyMenu{ background:#fff; border-color:#dfe7e2; color:#1b231f; }
+
+.ccyItem{
+  display:flex; align-items:center; gap:10px; padding:12px 12px; cursor:pointer;
+}
+.ccyItem:hover{ background:rgba(34,197,94,.10); }
+.itemCode{ font-weight:900; width:54px; }
+.itemLabel{ opacity:.9; }
+
 /* Rate row */
 .rateRow{display:flex; align-items:center; gap:12px; padding-left:22px; position:relative;}
 .rateRow::before{
   content:""; position:absolute; left:6px; top:0; bottom:0; width:6px; border-radius:6px; background:linear-gradient(180deg, var(--emerald) 0%, transparent 100%);
 }
-
-/* High-contrast badge for accessibility */
+/* High-contrast badge */
 .rateBadge{
-  background:#16a34a;           /* emerald-600 */
-  color:#ffffff;                 /* high contrast text */
-  border:none;
-  padding:6px 12px;
-  border-radius:999px;
-  font-weight:900;
-  letter-spacing:.1px;
+  background:#16a34a; color:#ffffff; border:none; padding:6px 12px; border-radius:999px; font-weight:900; letter-spacing:.1px;
   box-shadow:0 2px 6px rgba(0,0,0,.18);
 }
 .dark .rateBadge{ box-shadow:0 2px 8px rgba(0,0,0,.35); }
 .light .rateBadge{ box-shadow:0 1px 4px rgba(0,0,0,.15); }
-
 .rateText{font-size:1rem; opacity:.95;}
 .rateText strong{font-weight:900;}
 
@@ -127,6 +136,9 @@
 .light .select{ background:#f8fbfa; color:#1b231f; border-color:#dfeae5;}
 .select:focus{ box-shadow:0 0 0 3px rgba(34,197,94,.22); border-color:var(--emerald); outline:none;}
 .selectChev{position:absolute; right:14px; top:50%; transform:translateY(-50%); pointer-events:none; opacity:.8;}
+
+/* Make options readable on all platforms */
+.select option{ color:#111; background:#fff; }   /* works for most UAs */
 
 /* Summary */
 .summary{display:grid; gap:8px; margin-top:4px;}

@@ -1,48 +1,116 @@
-// src/components/HeroCalculator.jsx
-import React, { useContext, useMemo, useState } from "react";
+// client/src/components/HeroCalculator.jsx
+import React, { useContext, useMemo, useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styles from "./hero-calculator.module.css";
 import { LanguageContext } from "../LanguageContext";
 
-// Currency -> country code mapping for flags (extend as you add currencies)
+/** Currency -> country-code mapping for flags */
 const CCY = {
-  USD: { cc: "us", label: "United States" },
-  SDG: { cc: "sd", label: "Sudan" },
-  BHD: { cc: "bh", label: "Bahrain" },
+  USD: { cc: "us", label: "United States Dollar" },
+  SDG: { cc: "sd", label: "Sudanese Pound" },
+  BHD: { cc: "bh", label: "Bahraini Dinar" },
+  KWD: { cc: "kw", label: "Kuwaiti Dinar" },
+  AED: { cc: "ae", label: "UAE Dirham" },
+  SAR: { cc: "sa", label: "Saudi Riyal" },
+  QAR: { cc: "qa", label: "Qatari Riyal" },
+  OMR: { cc: "om", label: "Omani Rial" },
 };
 
-// Build a small, crisp flag image URL (served globally via CDN)
+const GCC_LIST = ["BHD", "KWD", "AED", "SAR", "QAR", "OMR", "USD"];
+
 function flagSrc(cc) {
-  // 24x18 for normal, 48x36 for HiDPI
   return {
     src: `https://flagcdn.com/24x18/${cc}.png`,
     srcSet: `https://flagcdn.com/48x36/${cc}.png 2x`,
   };
 }
 
-function CurrencyPill({ currency = "USD" }) {
-  const info = CCY[currency] || { cc: "xx", label: currency };
+/** Small badge with better contrast */
+function RateBadge({ text = "First Transfer Rate 🎉" }) {
+  return <span className={styles.rateBadge}>{text}</span>;
+}
+
+/** Accessible custom currency picker with flags */
+function CurrencyPicker({ value, onChange, allowed = GCC_LIST }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  // close on outside click / Esc
+  useEffect(() => {
+    const onDoc = (e) => {
+      if (!wrapRef.current) return;
+      if (!wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  const info = CCY[value] || { cc: "xx", label: value };
   const { src, srcSet } = flagSrc(info.cc);
 
   return (
-    <span className={styles.ccyPill} aria-label={`${currency} currency`}>
-      <img
-        className={styles.flagImg}
-        src={src}
-        srcSet={srcSet}
-        width={18}
-        height={14}
-        alt={`${info.label} flag`}
-        loading="lazy"
-      />
-      <span className={styles.ccyCode}>{currency}</span>
-      <span className={styles.chev} aria-hidden="true">▾</span>
-    </span>
-  );
-}
+    <div className={styles.ccyWrap} ref={wrapRef}>
+      <button
+        type="button"
+        className={styles.ccyPill}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <img
+          className={styles.flagImg}
+          src={src}
+          srcSet={srcSet}
+          width={18}
+          height={14}
+          alt={`${info.label} flag`}
+          loading="lazy"
+        />
+        <span className={styles.ccyCode}>{value}</span>
+        <span className={styles.chev} aria-hidden="true">▾</span>
+      </button>
 
-function RateBadge({ text = "First Transfer Rate 🎉" }) {
-  return <span className={styles.rateBadge}>{text}</span>;
+      {open && (
+        <ul className={styles.ccyMenu} role="listbox" aria-label="Choose currency">
+          {allowed.map((code) => {
+            const it = CCY[code];
+            const { src: s, srcSet: ss } = flagSrc(it.cc);
+            const selected = code === value;
+            return (
+              <li
+                key={code}
+                role="option"
+                aria-selected={selected}
+                className={styles.ccyItem}
+                onClick={() => {
+                  onChange(code);
+                  setOpen(false);
+                }}
+              >
+                <img
+                  className={styles.flagImg}
+                  src={s}
+                  srcSet={ss}
+                  width={18}
+                  height={14}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                />
+                <span className={styles.itemCode}>{code}</span>
+                <span className={styles.itemLabel}>{it.label}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export default function HeroCalculator({
@@ -56,17 +124,24 @@ export default function HeroCalculator({
   const isDark = variant === "dark";
   const { language, toggleLanguage } = useContext(LanguageContext);
 
-  // Demo state just to make the UI feel interactive
+  // UI state
   const [sendAmt, setSendAmt] = useState(1000);
-  const rate = 600; // 1 USD = 600 SDG (demo)
+  const [sendCcy, setSendCcy] = useState("USD"); // picker
+  const [recvCcy] = useState("SDG");              // fixed for now
+
+  // Demo rate: 1 USD = 600 SDG (pretend)
+  const rate = 600;
+
+  const cleanNumber = (v) => Number(String(v).replace(/[^\d.]/g, "")) || 0;
+
   const theyGet = useMemo(() => {
-    const n = Number(String(sendAmt).replace(/[^\d.]/g, "")) || 0;
+    const n = cleanNumber(sendAmt);
     return Math.max(0, Math.floor(n * rate)).toLocaleString();
   }, [sendAmt]);
 
   const fee = 0;
   const transferTime = "Same day";
-  const totalToPay = `${Number(String(sendAmt).replace(/[^\d.]/g, "") || 0).toLocaleString()} USD`;
+  const totalToPay = `${cleanNumber(sendAmt).toLocaleString()} ${sendCcy}`;
 
   return (
     <section className={`${styles.hero} ${isDark ? styles.dark : styles.light}`}>
@@ -125,9 +200,9 @@ export default function HeroCalculator({
                 inputMode="decimal"
                 value={sendAmt}
                 onChange={(e) => setSendAmt(e.target.value)}
-                aria-label="Amount you send in USD"
+                aria-label={`Amount you send in ${sendCcy}`}
               />
-              <CurrencyPill currency="USD" />
+              <CurrencyPicker value={sendCcy} onChange={setSendCcy} />
             </div>
           </div>
 
@@ -147,9 +222,21 @@ export default function HeroCalculator({
                 className={`${styles.input} ${styles.inputReadOnly}`}
                 value={theyGet}
                 readOnly
-                aria-label="Amount receiver gets in SDG"
+                aria-label={`Amount receiver gets in ${recvCcy}`}
               />
-              <CurrencyPill currency="SDG" />
+              {/* Fixed receiver currency for now */}
+              <div className={styles.ccyWrap}>
+                <button className={styles.ccyPill} type="button" disabled>
+                  <img
+                    className={styles.flagImg}
+                    {...flagSrc(CCY[recvCcy].cc)}
+                    width={18}
+                    height={14}
+                    alt="Sudan flag"
+                  />
+                  <span className={styles.ccyCode}>{recvCcy}</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -158,8 +245,8 @@ export default function HeroCalculator({
             <label className={styles.fieldLabel}>Receive method</label>
             <div className={styles.selectShell}>
               <select className={styles.select} aria-label="Receive method">
-                <option>Cash Pickup</option>
-                <option>Bank Transfer</option>
+                <option value="bank">Bank Transfer</option>
+                <option value="cash">Cash Pickup</option>
               </select>
               <span className={styles.selectChev} aria-hidden="true">▾</span>
             </div>
@@ -169,7 +256,7 @@ export default function HeroCalculator({
           <div className={styles.summary}>
             <div className={styles.sRow}>
               <span>Fee</span>
-              <span>{fee} USD</span>
+              <span>{fee} {sendCcy}</span>
             </div>
             <div className={styles.sRow}>
               <span>Transfer time</span>
@@ -190,7 +277,7 @@ export default function HeroCalculator({
             <button className={`${styles.btnSm} ${styles.btnOutline}`} onClick={onTrack}>
               Track a Transfer
             </button>
-            <button className={`${styles.btnSm}`} onClick={onRegister}>
+            <button className={styles.btnSm} onClick={onRegister}>
               Register
             </button>
             <button className={`${styles.btnSm} ${styles.btnDark}`} onClick={onLogin}>
