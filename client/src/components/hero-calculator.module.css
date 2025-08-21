@@ -89,7 +89,7 @@
   border-radius:999px; display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:0 14px; border:1px solid;
   font-weight:800;
 }
-.ccyFlag{font-size:18px; line-height:1;}
+.flagImg{ width:18px; height:14px; border-radius:2px; object-fit:cover; box-shadow:0 0 0 1px rgba(0,0,0,.08); }
 .ccyCode{letter-spacing:.6px;}
 .chev{opacity:.8; margin-left:4px;}
 .dark .ccyPill{ background:rgba(0,0,0,.28); border-color:rgba(255,255,255,.32); color:#fff; }
@@ -108,7 +108,7 @@
   border:none;
   padding:6px 12px;
   border-radius:999px;
-  font-weight:900;               /* bolder text */
+  font-weight:900;
   letter-spacing:.1px;
   box-shadow:0 2px 6px rgba(0,0,0,.18);
 }

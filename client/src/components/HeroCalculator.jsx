@@ -4,19 +4,38 @@ import { Link } from "react-router-dom";
 import styles from "./hero-calculator.module.css";
 import { LanguageContext } from "../LanguageContext";
 
-const FLAGS = {
-  USD: "🇺🇸",
-  SDG: "🇸🇩",
-  BHD: "🇧🇭",
-  SD: "🇸🇩",
-  BH: "🇧🇭",
+// Currency -> country code mapping for flags (extend as you add currencies)
+const CCY = {
+  USD: { cc: "us", label: "United States" },
+  SDG: { cc: "sd", label: "Sudan" },
+  BHD: { cc: "bh", label: "Bahrain" },
 };
 
-function CurrencyPill({ flag, code }) {
+// Build a small, crisp flag image URL (served globally via CDN)
+function flagSrc(cc) {
+  // 24x18 for normal, 48x36 for HiDPI
+  return {
+    src: `https://flagcdn.com/24x18/${cc}.png`,
+    srcSet: `https://flagcdn.com/48x36/${cc}.png 2x`,
+  };
+}
+
+function CurrencyPill({ currency = "USD" }) {
+  const info = CCY[currency] || { cc: "xx", label: currency };
+  const { src, srcSet } = flagSrc(info.cc);
+
   return (
-    <span className={styles.ccyPill} role="img" aria-label={`${code} currency`}>
-      <span className={styles.ccyFlag}>{flag}</span>
-      <span className={styles.ccyCode}>{code}</span>
+    <span className={styles.ccyPill} aria-label={`${currency} currency`}>
+      <img
+        className={styles.flagImg}
+        src={src}
+        srcSet={srcSet}
+        width={18}
+        height={14}
+        alt={`${info.label} flag`}
+        loading="lazy"
+      />
+      <span className={styles.ccyCode}>{currency}</span>
       <span className={styles.chev} aria-hidden="true">▾</span>
     </span>
   );
@@ -29,7 +48,6 @@ function RateBadge({ text = "First Transfer Rate 🎉" }) {
 export default function HeroCalculator({
   variant = "dark",
   logoSrc = "/logo.png",
-
   onMakeTransfer = () => (window.location.href = "/make-transfer"),
   onTrack = () => (window.location.href = "/track-transfer"),
   onRegister = () => (window.location.href = "/register"),
@@ -109,7 +127,7 @@ export default function HeroCalculator({
                 onChange={(e) => setSendAmt(e.target.value)}
                 aria-label="Amount you send in USD"
               />
-              <CurrencyPill flag={FLAGS.USD} code="USD" />
+              <CurrencyPill currency="USD" />
             </div>
           </div>
 
@@ -131,7 +149,7 @@ export default function HeroCalculator({
                 readOnly
                 aria-label="Amount receiver gets in SDG"
               />
-              <CurrencyPill flag={FLAGS.SDG} code="SDG" />
+              <CurrencyPill currency="SDG" />
             </div>
           </div>
 
