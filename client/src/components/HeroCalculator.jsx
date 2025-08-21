@@ -1,4 +1,3 @@
-// client/src/components/HeroCalculator.jsx
 import React, { useContext, useMemo, useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styles from "./hero-calculator.module.css";
@@ -17,6 +16,20 @@ const CCY = {
 };
 
 const GCC_LIST = ["BHD", "KWD", "AED", "SAR", "QAR", "OMR", "USD"];
+
+/** ---- DEMO RATES (update these when you want to refresh the demo) ---- */
+const USD_PER = {
+  USD: 1,
+  KWD: 3.27,      // 1 KWD ≈ 3.27 USD
+  BHD: 2.65,      // 1 BHD ≈ 2.65 USD
+  OMR: 2.60,      // 1 OMR ≈ 2.60 USD
+  QAR: 0.274,     // 1 QAR ≈ 0.274 USD
+  AED: 0.272,     // 1 AED ≈ 0.272 USD
+  SAR: 0.266,     // 1 SAR ≈ 0.266 USD
+};
+/** “Today’s” USD->SDG demo rate (from your example 900 USD = 588,906 SDG): */
+const USD_TO_SDG = 654.34;
+/** -------------------------------------------------------------------- */
 
 function flagSrc(cc) {
   return {
@@ -129,15 +142,19 @@ export default function HeroCalculator({
   const [sendCcy, setSendCcy] = useState("USD"); // picker
   const [recvCcy] = useState("SDG");              // fixed for now
 
-  // Demo rate: 1 USD = 600 SDG (pretend)
-  const rate = 600;
-
   const cleanNumber = (v) => Number(String(v).replace(/[^\d.]/g, "")) || 0;
 
-  const theyGet = useMemo(() => {
+  // Step 1: convert sender amount to USD using demo USD-per-unit table
+  const sendUsd = useMemo(() => {
     const n = cleanNumber(sendAmt);
-    return Math.max(0, Math.floor(n * rate)).toLocaleString();
-  }, [sendAmt]);
+    const factor = USD_PER[sendCcy] ?? 1;
+    return n * factor;
+  }, [sendAmt, sendCcy]);
+
+  // Step 2: convert USD to SDG with today’s demo rate
+  const theyGet = useMemo(() => {
+    return Math.max(0, Math.floor(sendUsd * USD_TO_SDG)).toLocaleString();
+  }, [sendUsd]);
 
   const fee = 0;
   const transferTime = "Same day";
@@ -210,7 +227,18 @@ export default function HeroCalculator({
           <div className={styles.rateRow}>
             <RateBadge />
             <div className={styles.rateText}>
-              1 USD = <strong>{rate.toLocaleString()}</strong> SDG
+              {sendCcy !== "USD" && (
+                <>
+                  1 {sendCcy} ≈ <strong>{USD_PER[sendCcy].toFixed(2)}</strong> USD •{" "}
+                </>
+              )}
+              1 USD = <strong>{USD_TO_SDG.toLocaleString()}</strong> SDG
+              {sendUsd > 0 && (
+                <>
+                  {" "}• ≈ {sendUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  {" "}USD
+                </>
+              )}
             </div>
           </div>
 
