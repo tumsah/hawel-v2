@@ -1,0 +1,19 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+
+# Env & secrets
+.env
+.env.*
+server/.env
+client/.env
+
+# Build artifacts
+dist/
+build/
+coverage/
+
+# Uploads
+uploads/

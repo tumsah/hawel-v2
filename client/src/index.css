@@ -1,0 +1,14 @@
+/* src/index.css */
+
+/* Tailwind imports */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: basic reset */
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
